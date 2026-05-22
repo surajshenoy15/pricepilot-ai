@@ -4,8 +4,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import DashboardLayout from './components/layout/DashboardLayout';
 import Login from './pages/Login';
 
-// Placeholder pages
-const Dashboard           = () => <div>📊 Dashboard — coming Day 7</div>;
+import Dashboard from './pages/Dashboard';
 const Products            = () => <div>📦 Products — coming Day 10</div>;
 const ProductDetail       = () => <div>🔍 Product Detail — coming Day 13</div>;
 const Recommendations     = () => <div>🤖 Recommendations — coming Day 15</div>;
