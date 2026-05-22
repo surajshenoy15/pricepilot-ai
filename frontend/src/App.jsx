@@ -1,65 +1,49 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ROUTES } from './utils/constants';
 import ProtectedRoute from './routes/ProtectedRoute';
-
-// ─── Real page (built today) ───────────────────────────────────
+import DashboardLayout from './components/layout/DashboardLayout';
 import Login from './pages/Login';
 
-// ─── Placeholder pages (built in coming days) ─────────────────
-const Dashboard           = () => <div style={{ padding: 40 }}>📊 Dashboard — coming Day 5</div>;
-const Products            = () => <div style={{ padding: 40 }}>📦 Products — coming Day 10</div>;
-const ProductDetail       = () => <div style={{ padding: 40 }}>🔍 Product Detail — coming Day 13</div>;
-const Recommendations     = () => <div style={{ padding: 40 }}>🤖 Recommendations — coming Day 15</div>;
-const RecommendationDetail= () => <div style={{ padding: 40 }}>🤖 Recommendation Detail</div>;
-const Approvals           = () => <div style={{ padding: 40 }}>✅ Approvals — coming Day 16</div>;
-const Reports             = () => <div style={{ padding: 40 }}>📈 Reports — coming Day 18</div>;
-const Users               = () => <div style={{ padding: 40 }}>👥 Users — coming Day 20</div>;
-const MarketplaceAccounts = () => <div style={{ padding: 40 }}>🛍️ Marketplace Accounts</div>;
-const Settings            = () => <div style={{ padding: 40 }}>⚙️ Settings</div>;
+// Placeholder pages
+const Dashboard           = () => <div>📊 Dashboard — coming Day 7</div>;
+const Products            = () => <div>📦 Products — coming Day 10</div>;
+const ProductDetail       = () => <div>🔍 Product Detail — coming Day 13</div>;
+const Recommendations     = () => <div>🤖 Recommendations — coming Day 15</div>;
+const RecommendationDetail= () => <div>🤖 Recommendation Detail</div>;
+const Approvals           = () => <div>✅ Approvals — coming Day 16</div>;
+const Reports             = () => <div>📈 Reports — coming Day 18</div>;
+const Users               = () => <div>👥 Users — coming Day 20</div>;
+const MarketplaceAccounts = () => <div>🛍️ Marketplace Accounts</div>;
+const Settings            = () => <div>⚙️ Settings</div>;
+
+// ─── Helper: wraps ProtectedRoute + DashboardLayout together ──
+// Saves you repeating both wrappers on every single route
+const PrivatePage = ({ element }) => (
+  <ProtectedRoute>
+    <DashboardLayout>
+      {element}
+    </DashboardLayout>
+  </ProtectedRoute>
+);
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* Public — no auth needed */}
         <Route path={ROUTES.LOGIN} element={<Login />} />
 
-        {/* Protected — ProtectedRoute checks token before rendering */}
-        <Route path={ROUTES.DASHBOARD} element={
-          <ProtectedRoute><Dashboard /></ProtectedRoute>
-        } />
-        <Route path={ROUTES.PRODUCTS} element={
-          <ProtectedRoute><Products /></ProtectedRoute>
-        } />
-        <Route path={ROUTES.PRODUCT_DETAIL} element={
-          <ProtectedRoute><ProductDetail /></ProtectedRoute>
-        } />
-        <Route path={ROUTES.RECOMMENDATIONS} element={
-          <ProtectedRoute><Recommendations /></ProtectedRoute>
-        } />
-        <Route path={ROUTES.RECOMMENDATION_DETAIL} element={
-          <ProtectedRoute><RecommendationDetail /></ProtectedRoute>
-        } />
-        <Route path={ROUTES.APPROVALS} element={
-          <ProtectedRoute><Approvals /></ProtectedRoute>
-        } />
-        <Route path={ROUTES.REPORTS} element={
-          <ProtectedRoute><Reports /></ProtectedRoute>
-        } />
-        <Route path={ROUTES.USERS} element={
-          <ProtectedRoute><Users /></ProtectedRoute>
-        } />
-        <Route path={ROUTES.MARKETPLACE_ACCOUNTS} element={
-          <ProtectedRoute><MarketplaceAccounts /></ProtectedRoute>
-        } />
-        <Route path={ROUTES.SETTINGS} element={
-          <ProtectedRoute><Settings /></ProtectedRoute>
-        } />
+        <Route path={ROUTES.DASHBOARD}             element={<PrivatePage element={<Dashboard />} />} />
+        <Route path={ROUTES.PRODUCTS}              element={<PrivatePage element={<Products />} />} />
+        <Route path={ROUTES.PRODUCT_DETAIL}        element={<PrivatePage element={<ProductDetail />} />} />
+        <Route path={ROUTES.RECOMMENDATIONS}       element={<PrivatePage element={<Recommendations />} />} />
+        <Route path={ROUTES.RECOMMENDATION_DETAIL} element={<PrivatePage element={<RecommendationDetail />} />} />
+        <Route path={ROUTES.APPROVALS}             element={<PrivatePage element={<Approvals />} />} />
+        <Route path={ROUTES.REPORTS}               element={<PrivatePage element={<Reports />} />} />
+        <Route path={ROUTES.USERS}                 element={<PrivatePage element={<Users />} />} />
+        <Route path={ROUTES.MARKETPLACE_ACCOUNTS}  element={<PrivatePage element={<MarketplaceAccounts />} />} />
+        <Route path={ROUTES.SETTINGS}              element={<PrivatePage element={<Settings />} />} />
 
-        {/* Any unknown URL → login */}
         <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
-
       </Routes>
     </BrowserRouter>
   );

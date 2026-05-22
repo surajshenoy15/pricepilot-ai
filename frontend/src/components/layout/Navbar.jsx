@@ -1,23 +1,10 @@
+// Temporary placeholder — full version built on Day 6
 const Navbar = () => {
   return (
-    <div style={styles.navbar}>
-      <h2>PricePilot AI</h2>
-
-      <div>Welcome User</div>
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+      <span style={{ color: '#999', fontSize: 13 }}>Navbar coming Day 6</span>
     </div>
   );
-};
-
-const styles = {
-  navbar: {
-    height: "70px",
-    backgroundColor: "white",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "0 20px",
-    borderBottom: "1px solid #ddd",
-  },
 };
 
 export default Navbar;
