@@ -1,0 +1,6 @@
+﻿backend/target/
+*.log
+.env
+backend/.settings/
+backend/.classpath
+backend/.project
