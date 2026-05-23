@@ -11,123 +11,122 @@ import {
   SettingOutlined,
 } from '@ant-design/icons';
 import { ROUTES } from '../../utils/constants';
+import PricePilotLogo from '../common/Logo';
 
-// ─── Menu item definitions ─────────────────────────────────────
-// key must match the route path exactly — this is how active highlight works
 const menuItems = [
   {
-    key: ROUTES.DASHBOARD,
-    icon: <DashboardOutlined />,
-    label: 'Dashboard',
+    key: 'main',
+    type: 'group',
+    label: (
+      <span style={{
+        fontSize: 10,
+        fontWeight: 600,
+        color: 'rgba(255,255,255,0.25)',
+        letterSpacing: '1.5px',
+        textTransform: 'uppercase',
+      }}>
+        Main
+      </span>
+    ),
+    children: [
+      { key: ROUTES.DASHBOARD,       icon: <DashboardOutlined />, label: 'Dashboard' },
+      { key: ROUTES.PRODUCTS,        icon: <ShoppingOutlined />,  label: 'Products' },
+      { key: ROUTES.RECOMMENDATIONS, icon: <RobotOutlined />,     label: 'AI Recommendations' },
+      { key: ROUTES.APPROVALS,       icon: <CheckCircleOutlined />,label: 'Approvals' },
+      { key: ROUTES.REPORTS,         icon: <BarChartOutlined />,  label: 'Reports' },
+    ],
   },
   {
-    key: ROUTES.PRODUCTS,
-    icon: <ShoppingOutlined />,
-    label: 'Products',
-  },
-  {
-    key: ROUTES.RECOMMENDATIONS,
-    icon: <RobotOutlined />,
-    label: 'Recommendations',
-  },
-  {
-    key: ROUTES.APPROVALS,
-    icon: <CheckCircleOutlined />,
-    label: 'Approvals',
-  },
-  {
-    key: ROUTES.REPORTS,
-    icon: <BarChartOutlined />,
-    label: 'Reports',
-  },
-  {
-    type: 'divider', // visual separator line
-  },
-  {
-    key: ROUTES.USERS,
-    icon: <TeamOutlined />,
-    label: 'Users',
-  },
-  {
-    key: ROUTES.MARKETPLACE_ACCOUNTS,
-    icon: <ShopOutlined />,
-    label: 'Marketplaces',
-  },
-  {
-    key: ROUTES.SETTINGS,
-    icon: <SettingOutlined />,
-    label: 'Settings',
+    key: 'manage',
+    type: 'group',
+    label: (
+      <span style={{
+        fontSize: 10,
+        fontWeight: 600,
+        color: 'rgba(255,255,255,0.25)',
+        letterSpacing: '1.5px',
+        textTransform: 'uppercase',
+      }}>
+        Manage
+      </span>
+    ),
+    children: [
+      { key: ROUTES.USERS,               icon: <TeamOutlined />,  label: 'Users' },
+      { key: ROUTES.MARKETPLACE_ACCOUNTS,icon: <ShopOutlined />,  label: 'Marketplaces' },
+      { key: ROUTES.SETTINGS,            icon: <SettingOutlined />,label: 'Settings' },
+    ],
   },
 ];
 
-const Sidebar = ({ collapsed }) => {
-  const navigate  = useNavigate();
-  const location  = useLocation();
+// When sidebar is collapsed, groups break the layout — use flat list instead
+const flatMenuItems = [
+  { key: ROUTES.DASHBOARD,              icon: <DashboardOutlined />,  label: 'Dashboard' },
+  { key: ROUTES.PRODUCTS,               icon: <ShoppingOutlined />,   label: 'Products' },
+  { key: ROUTES.RECOMMENDATIONS,        icon: <RobotOutlined />,      label: 'Recommendations' },
+  { key: ROUTES.APPROVALS,              icon: <CheckCircleOutlined />, label: 'Approvals' },
+  { key: ROUTES.REPORTS,                icon: <BarChartOutlined />,   label: 'Reports' },
+  { type: 'divider' },
+  { key: ROUTES.USERS,                  icon: <TeamOutlined />,       label: 'Users' },
+  { key: ROUTES.MARKETPLACE_ACCOUNTS,   icon: <ShopOutlined />,       label: 'Marketplaces' },
+  { key: ROUTES.SETTINGS,               icon: <SettingOutlined />,    label: 'Settings' },
+];
 
-  // This reads the current URL and highlights the matching menu item
-  // If URL is /products, the Products menu item gets highlighted automatically
+const Sidebar = ({ collapsed }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const activeKey = '/' + location.pathname.split('/')[1];
 
-  const handleMenuClick = ({ key }) => {
-    navigate(key);
-  };
-
   return (
-    <>
-      {/* Logo area at the top of the sidebar */}
+    <div style={{
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      background: '#0f172a',    // Deep navy — more premium than default Ant dark
+    }}>
+
+      {/* ── Logo area ────────────────────────────────────── */}
       <div style={{
         height: 64,
         display: 'flex',
         alignItems: 'center',
         justifyContent: collapsed ? 'center' : 'flex-start',
         padding: collapsed ? 0 : '0 20px',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
         flexShrink: 0,
       }}>
-        <div style={{
-          width: 32,
-          height: 32,
-          background: '#1677ff',
-          borderRadius: 8,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 14,
-          fontWeight: 700,
-          color: '#fff',
-          flexShrink: 0,
-        }}>
-          PP
-        </div>
-        {/* Hide text when sidebar is collapsed */}
-        {!collapsed && (
-          <span style={{
-            marginLeft: 10,
-            fontSize: 15,
-            fontWeight: 700,
-            color: '#fff',
-            whiteSpace: 'nowrap',
-          }}>
-            PricePilot AI
-          </span>
-        )}
+        <PricePilotLogo size={34} collapsed={collapsed} />
       </div>
 
-      {/* Navigation menu */}
-      <Menu
-        theme="dark"
-        mode="inline"
-        selectedKeys={[activeKey]}
-        items={menuItems}
-        onClick={handleMenuClick}
-        style={{
-          flex: 1,
-          borderRight: 0,
-          paddingTop: 8,
-          overflow: 'auto',
-        }}
-      />
-    </>
+      {/* ── Navigation menu ──────────────────────────────── */}
+      <div style={{ flex: 1, overflow: 'auto', paddingTop: 8 }}>
+        <Menu
+          mode="inline"
+          selectedKeys={[activeKey]}
+          items={collapsed ? flatMenuItems : menuItems}
+          onClick={({ key }) => navigate(key)}
+          style={{
+            background: 'transparent',
+            border: 'none',
+          }}
+          theme="dark"
+        />
+      </div>
+
+      {/* ── Bottom version tag ───────────────────────────── */}
+      {!collapsed && (
+        <div style={{
+          padding: '12px 20px',
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+          fontSize: 11,
+          color: 'rgba(255,255,255,0.2)',
+          letterSpacing: '0.5px',
+        }}>
+          PricePilot AI · v1.0.0
+        </div>
+      )}
+
+    </div>
   );
 };
 

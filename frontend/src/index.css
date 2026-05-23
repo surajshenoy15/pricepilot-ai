@@ -109,3 +109,19 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* ── Login page responsive (hide brand panel on mobile) ── */
+@media (max-width: 768px) {
+  .login-brand-panel {
+    display: none !important;
+  }
+  .login-form-panel {
+    grid-column: 1 / -1 !important;
+    padding: 40px 24px !important;
+  }
+}
+
+/* ── Sidebar scrollbar styling ──────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
