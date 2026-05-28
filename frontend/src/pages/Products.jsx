@@ -1,101 +1,178 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Row, Col, Input, Select, Button, Typography,
-  Space, Alert, Card
+  Row,
+  Col,
+  Input,
+  Select,
+  Button,
+  Typography,
+  Space,
+  Alert,
+  Card,
 } from 'antd';
-import { SearchOutlined, UploadOutlined, ReloadOutlined } from '@ant-design/icons';
+
+import {
+  SearchOutlined,
+  UploadOutlined,
+  ReloadOutlined,
+} from '@ant-design/icons';
+
 import { debounce } from 'lodash';
+
 import ProductTable from '../components/product/ProductTable';
 import UploadCsvBox from '../components/product/UploadCsvBox';
-import { getProducts } from '../api/productApi';
 import { MARKETPLACES } from '../utils/constants';
 
 const { Title, Text } = Typography;
 
 const Products = () => {
-  const [products,    setProducts]    = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [error,       setError]       = useState(null);
-  const [showUpload,  setShowUpload]  = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showUpload, setShowUpload] = useState(false);
 
-  // ── Filter + pagination state ─────────────────────────
-  const [search,      setSearch]      = useState('');
+  const [search, setSearch] = useState('');
   const [marketplace, setMarketplace] = useState('');
-  const [pagination,  setPagination]  = useState({ page: 0, size: 10, total: 0 });
 
-  // ── Fetch products ────────────────────────────────────
-  const fetchProducts = useCallback(async (params = {}) => {
+  const [pagination, setPagination] = useState({
+    page: 0,
+    size: 10,
+    total: 0,
+  });
+
+  // ─────────────────────────────────────────
+  // TEMP MOCK DATA FETCH
+  // ─────────────────────────────────────────
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getProducts({
-        search:      params.search      ?? search,
-        marketplace: params.marketplace ?? marketplace,
-        page:        params.page        ?? pagination.page,
-        size:        params.size        ?? pagination.size,
-      });
 
-      // Handle Spring Page response format
-      setProducts(data.content ?? data);
-      setPagination(prev => ({
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const data = {
+        content: [
+          {
+            id: 1,
+            name: 'Bluetooth Speaker X',
+            sku: 'SKU001',
+            marketplace: 'amazon',
+            price: 1500,
+            healthScore: 72,
+            status: 'ACTIVE',
+          },
+          {
+            id: 2,
+            name: 'Wireless Keyboard Pro',
+            sku: 'SKU002',
+            marketplace: 'flipkart',
+            price: 1299,
+            healthScore: 45,
+            status: 'ACTIVE',
+          },
+          {
+            id: 3,
+            name: 'USB C Hub 7-in-1',
+            sku: 'SKU003',
+            marketplace: 'meesho',
+            price: 899,
+            healthScore: 28,
+            status: 'INACTIVE',
+          },
+        ],
+        totalElements: 3,
+        number: 0,
+        size: 10,
+      };
+
+      let filteredProducts = data.content;
+
+      // Search filter
+      if (search) {
+        filteredProducts = filteredProducts.filter(
+          (product) =>
+            product.name.toLowerCase().includes(search.toLowerCase()) ||
+            product.sku.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+
+      // Marketplace filter
+      if (marketplace) {
+        filteredProducts = filteredProducts.filter(
+          (product) => product.marketplace === marketplace
+        );
+      }
+
+      setProducts(filteredProducts);
+
+      setPagination((prev) => ({
         ...prev,
-        total: data.totalElements ?? data.length ?? 0,
-        page:  data.number        ?? prev.page,
-        size:  data.size          ?? prev.size,
+        total: filteredProducts.length,
       }));
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load products');
+      setError('Failed to load products');
     } finally {
       setLoading(false);
     }
-  }, [search, marketplace, pagination.page, pagination.size]);
+  }, [search, marketplace]);
 
-  useEffect(() => { fetchProducts(); }, []); // Initial load only
+  // Initial load
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
-  // ── Debounced search (waits 300ms after user stops typing) ──
+  // Debounced search
   const handleSearchChange = debounce((value) => {
     setSearch(value);
-    fetchProducts({ search: value, page: 0 }); // Reset to page 1 on new search
   }, 300);
 
-  // ── Marketplace filter ────────────────────────────────
+  // Marketplace filter
   const handleMarketplaceChange = (value) => {
-    setMarketplace(value);
-    fetchProducts({ marketplace: value, page: 0 });
+    setMarketplace(value || '');
   };
 
-  // ── Pagination change from table ──────────────────────
+  // Pagination change
   const handleTableChange = ({ page, size }) => {
-    setPagination(prev => ({ ...prev, page, size }));
-    fetchProducts({ page, size });
+    setPagination((prev) => ({
+      ...prev,
+      page,
+      size,
+    }));
   };
 
-  // ── After CSV upload, refresh the table ──────────────
+  // CSV upload success
   const handleUploadSuccess = () => {
     setShowUpload(false);
-    fetchProducts({ page: 0 });
+    fetchProducts();
   };
 
   return (
     <div>
-
-      {/* ── Page header ──────────────────────────────── */}
+      {/* Page Header */}
       <div style={{ marginBottom: 20 }}>
-        <Title level={4} style={{ margin: 0 }}>Products</Title>
+        <Title level={4} style={{ margin: 0 }}>
+          Products
+        </Title>
+
         <Text type="secondary" style={{ fontSize: 13 }}>
           Manage products across all your connected marketplaces
         </Text>
       </div>
 
+      {/* Error Alert */}
       {error && (
         <Alert
-          message={error} type="error" showIcon closable
+          message={error}
+          type="error"
+          showIcon
+          closable
           style={{ marginBottom: 16, borderRadius: 8 }}
           onClose={() => setError(null)}
         />
       )}
 
-      {/* ── CSV Upload box (toggles) ──────────────────── */}
+      {/* Upload Box */}
       {showUpload && (
         <div style={{ marginBottom: 16 }}>
           <UploadCsvBox
@@ -105,10 +182,12 @@ const Products = () => {
         </div>
       )}
 
-      {/* ── Filters bar ──────────────────────────────── */}
-      <Card style={{ borderRadius: 12, marginBottom: 16 }} styles={{ body: { padding: '16px 20px' } }}>
+      {/* Filters */}
+      <Card
+        style={{ borderRadius: 12, marginBottom: 16 }}
+        styles={{ body: { padding: '16px 20px' } }}
+      >
         <Row gutter={12} align="middle">
-
           <Col flex="1">
             <Input
               prefix={<SearchOutlined style={{ color: '#bbb' }} />}
@@ -123,11 +202,14 @@ const Products = () => {
             <Select
               placeholder="All Marketplaces"
               allowClear
-              style={{ width: 180, borderRadius: 8 }}
+              style={{ width: 180 }}
               onChange={handleMarketplaceChange}
               options={[
                 { label: 'All Marketplaces', value: '' },
-                ...MARKETPLACES.map(m => ({ label: m.label, value: m.value })),
+                ...MARKETPLACES.map((m) => ({
+                  label: m.label,
+                  value: m.value,
+                })),
               ]}
             />
           </Col>
@@ -136,9 +218,9 @@ const Products = () => {
             <Space>
               <Button
                 icon={<ReloadOutlined />}
-                onClick={() => fetchProducts()}
-                title="Refresh"
+                onClick={fetchProducts}
               />
+
               <Button
                 type="primary"
                 icon={<UploadOutlined />}
@@ -148,12 +230,14 @@ const Products = () => {
               </Button>
             </Space>
           </Col>
-
         </Row>
       </Card>
 
-      {/* ── Products table ────────────────────────────── */}
-      <Card style={{ borderRadius: 12 }} styles={{ body: { padding: 0 } }}>
+      {/* Product Table */}
+      <Card
+        style={{ borderRadius: 12 }}
+        styles={{ body: { padding: 0 } }}
+      >
         <ProductTable
           data={products}
           loading={loading}
@@ -161,7 +245,6 @@ const Products = () => {
           onChange={handleTableChange}
         />
       </Card>
-
     </div>
   );
 };

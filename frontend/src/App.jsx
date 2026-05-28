@@ -5,8 +5,8 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import Login from './pages/Login';
 
 import Dashboard from './pages/Dashboard';
-import Products from './pages/Products';;
-const ProductDetail       = () => <div>🔍 Product Detail — coming Day 13</div>;
+import Products      from './pages/Products';
+import ProductDetail from './pages/ProductDetail';
 const Recommendations     = () => <div>🤖 Recommendations — coming Day 15</div>;
 const RecommendationDetail= () => <div>🤖 Recommendation Detail</div>;
 const Approvals           = () => <div>✅ Approvals — coming Day 16</div>;
