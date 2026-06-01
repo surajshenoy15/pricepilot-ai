@@ -14,3 +14,9 @@ target/
 
 .DS_Store
 Thumbs.db
+# VS Code settings
+.vscode/
+
+# Backend error/log files
+backend/*.txt
+backend/error_log.txt
