@@ -1,5 +1,6 @@
 package com.pricepilot.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(exclude = {"tenant", "masterProduct"})
 public class MarketplaceProduct {
 
     @Id
@@ -19,10 +21,12 @@ public class MarketplaceProduct {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnore                              // ← fixes circular reference
     private Tenant tenant;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "master_product_id", nullable = false)
+    @JsonIgnore                              // ← fixes circular reference
     private MasterProduct masterProduct;
 
     @Column(nullable = false)
@@ -48,7 +52,6 @@ public class MarketplaceProduct {
     @Column(name = "product_url")
     private String productUrl;
 
-    // Sales metrics (last 7 days)
     @Column(name = "views_last_7_days")
     private Integer viewsLast7Days;
 

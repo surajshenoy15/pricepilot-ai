@@ -14,6 +14,7 @@ import {
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail';
 import Recommendations from './pages/Recommendations';
 import UserManagement from './pages/UserManagement';
 import AuditLog from './pages/AuditLog';
@@ -89,6 +90,7 @@ function AppLayout() {
           <Routes>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/products" element={<Products />} />
+            <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/users" element={<UserManagement />} />
             <Route path="/audit-log" element={<AuditLog />} />

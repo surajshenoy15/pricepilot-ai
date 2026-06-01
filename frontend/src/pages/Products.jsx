@@ -1,131 +1,317 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Table, Card, Button, Tag, Space, Modal, Form, Input, InputNumber,
-  Select, Typography, Row, Col, Progress, Descriptions, Badge
+  Select, Typography, Row, Col, Progress, Descriptions, Badge,
+  Skeleton, Alert, message, Upload
 } from 'antd';
-import { PlusOutlined, EyeOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined, EyeOutlined, ThunderboltOutlined,
+  ReloadOutlined, SearchOutlined, UploadOutlined, InboxOutlined
+} from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import axiosClient from '../api/axiosClient';
 
 const { Title, Text } = Typography;
 
-// Demo data - replace with API calls
-const demoProducts = [
-  {
-    id: 1, name: 'boAt Rockerz 255 Pro', brand: 'boAt', category: 'Audio',
-    costPrice: 900, healthScore: 72,
-    listings: [
-      { platform: 'AMAZON', title: 'boAt Rockerz 255 Pro Wireless Neckband', currentPrice: 1499, stockQuantity: 85, viewsLast7Days: 1200, ordersLast7Days: 28, rating: 4.2 },
-      { platform: 'FLIPKART', title: 'Boat 255 Pro Bluetooth Earphones', currentPrice: 1299, stockQuantity: 60, viewsLast7Days: 890, ordersLast7Days: 35, rating: 4.3 },
-    ]
-  },
-  {
-    id: 2, name: 'Wireless Keyboard Pro', brand: 'Logitech', category: 'Accessories',
-    costPrice: 800, healthScore: 34,
-    listings: [
-      { platform: 'AMAZON', title: 'Logitech Wireless Keyboard K380', currentPrice: 1499, stockQuantity: 120, viewsLast7Days: 900, ordersLast7Days: 2, rating: 4.0 },
-      { platform: 'FLIPKART', title: 'Logitech K380 Multi-Device Keyboard', currentPrice: 1299, stockQuantity: 45, viewsLast7Days: 450, ordersLast7Days: 12, rating: 4.1 },
-    ]
-  },
-  {
-    id: 3, name: 'Samsung 25W Charger', brand: 'Samsung', category: 'Mobile Accessories',
-    costPrice: 500, healthScore: 85,
-    listings: [
-      { platform: 'AMAZON', title: 'Samsung 25W Type-C Fast Charger', currentPrice: 899, stockQuantity: 200, viewsLast7Days: 2100, ordersLast7Days: 65, rating: 4.5 },
-      { platform: 'MEESHO', title: 'Samsung Original 25W Charger', currentPrice: 799, stockQuantity: 150, viewsLast7Days: 1500, ordersLast7Days: 42, rating: 4.3 },
-    ]
-  },
-  {
-    id: 4, name: 'USB-C Hub 7-in-1', brand: 'Anker', category: 'Accessories',
-    costPrice: 1200, healthScore: 28,
-    listings: [
-      { platform: 'AMAZON', title: 'Anker USB-C Hub 7-in-1 Adapter', currentPrice: 2499, stockQuantity: 80, viewsLast7Days: 450, ordersLast7Days: 0, rating: 4.4 },
-      { platform: 'FLIPKART', title: 'Anker 7 in 1 USB C Hub', currentPrice: 2199, stockQuantity: 30, viewsLast7Days: 280, ordersLast7Days: 3, rating: 4.2 },
-    ]
-  },
-  {
-    id: 5, name: 'Phone Case Clear', brand: 'Spigen', category: 'Mobile Accessories',
-    costPrice: 200, healthScore: 22,
-    listings: [
-      { platform: 'AMAZON', title: 'Spigen Ultra Hybrid Clear Case', currentPrice: 799, stockQuantity: 500, viewsLast7Days: 1200, ordersLast7Days: 0, rating: 4.1 },
-      { platform: 'FLIPKART', title: 'Spigen Crystal Clear Phone Case', currentPrice: 599, stockQuantity: 300, viewsLast7Days: 800, ordersLast7Days: 5, rating: 4.0 },
-      { platform: 'MEESHO', title: 'Spigen Clear Back Cover', currentPrice: 499, stockQuantity: 200, viewsLast7Days: 2000, ordersLast7Days: 15, rating: 3.8 },
-    ]
-  },
-];
+const platformColor = {
+  AMAZON: 'orange', FLIPKART: 'blue', SHOPIFY: 'green',
+  MEESHO: 'pink', MYNTRA: 'purple', WOOCOMMERCE: 'cyan', OTHER: 'default',
+};
 
+// ── CSV Upload Modal ───────────────────────────────────────────
+const UploadCsvModal = ({ visible, onClose, onSuccess }) => {
+  const [uploading, setUploading] = useState(false);
+
+  return (
+    <Modal
+      title="Import Products from CSV"
+      open={visible}
+      onCancel={onClose}
+      footer={null}
+    >
+      <Upload.Dragger
+        accept=".csv"
+        showUploadList={false}
+        disabled={uploading}
+        customRequest={async ({ file }) => {
+          try {
+            setUploading(true);
+            const form = new FormData();
+            form.append('file', file);
+            await axiosClient.post('/products/import-csv', form, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            message.success('Products imported successfully!');
+            onSuccess();
+            onClose();
+          } catch (err) {
+            message.error(err.response?.data?.message || 'CSV upload failed');
+          } finally {
+            setUploading(false);
+          }
+        }}
+      >
+        <p className="ant-upload-drag-icon">
+          <InboxOutlined style={{ fontSize: 48, color: '#1677ff' }} />
+        </p>
+        <p style={{ fontSize: 16 }}>Click or drag CSV file here to upload</p>
+        <p style={{ color: '#888', fontSize: 12 }}>Supports .csv files only</p>
+        {uploading && <p style={{ color: '#1677ff' }}>Uploading...</p>}
+      </Upload.Dragger>
+
+      <div style={{ marginTop: 16, padding: 12, background: '#f5f5f5', borderRadius: 8 }}>
+        <Text strong>CSV Format:</Text><br />
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          name, brand, category, costPrice, marketplaceCommission, shippingCost
+        </Text>
+      </div>
+    </Modal>
+  );
+};
+
+// ── Main Products Page ─────────────────────────────────────────
 export default function Products() {
-  const [detailVisible, setDetailVisible] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [addVisible, setAddVisible] = useState(false);
+  const navigate = useNavigate();
 
-  const platformColor = {
-    AMAZON: 'orange', FLIPKART: 'blue', SHOPIFY: 'green',
-    MEESHO: 'pink', MYNTRA: 'purple', WOOCOMMERCE: 'cyan'
+  const [products,         setProducts]         = useState([]);
+  const [loading,          setLoading]          = useState(true);
+  const [error,            setError]            = useState(null);
+  const [detailVisible,    setDetailVisible]    = useState(false);
+  const [selectedProduct,  setSelectedProduct]  = useState(null);
+  const [addVisible,       setAddVisible]       = useState(false);
+  const [addLoading,       setAddLoading]       = useState(false);
+  const [csvVisible,       setCsvVisible]       = useState(false);
+  const [search,           setSearch]           = useState('');
+  const [marketplace,      setMarketplace]      = useState(null);
+
+  const [form] = Form.useForm();
+
+  // ── Fetch products ─────────────────────────────────────────
+  const fetchProducts = useCallback(async (searchVal, marketplaceVal) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params = {};
+      if (searchVal)      params.search      = searchVal;
+      if (marketplaceVal) params.marketplace = marketplaceVal;
+
+      const response = await axiosClient.get('/products', { params });
+      const data = response.data;
+      const productList = Array.isArray(data)
+        ? data
+        : data.content ?? data.products ?? [];
+
+      const mapped = productList.map(p => ({
+        id:          p.id,
+        name:        p.name,
+        brand:       p.brand        || '—',
+        category:    p.category     || '—',
+        costPrice:   p.costPrice    || 0,
+        healthScore: p.healthScore  || 0,
+        listings: (p.listings || []).map(l => ({
+          platform:        l.platform,
+          title:           l.title           || p.name,
+          currentPrice:    l.currentPrice    || 0,
+          stockQuantity:   l.stockQuantity   || 0,
+          viewsLast7Days:  l.viewsLast7Days  || 0,
+          ordersLast7Days: l.ordersLast7Days || 0,
+          rating:          l.rating          || 0,
+          platformSku:     l.platformSku     || '—',
+        })),
+      }));
+
+      setProducts(mapped);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load products');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProducts(search, marketplace);
+  }, [search, marketplace, fetchProducts]);
+
+  // ── Add product ────────────────────────────────────────────
+  const handleAddProduct = async (values) => {
+    try {
+      setAddLoading(true);
+      await axiosClient.post('/products', values);
+      message.success('Product added successfully');
+      setAddVisible(false);
+      form.resetFields();
+      fetchProducts(search, marketplace);
+    } catch (err) {
+      message.error(err.response?.data?.message || 'Failed to add product');
+    } finally {
+      setAddLoading(false);
+    }
   };
 
+  // ── Table columns ──────────────────────────────────────────
   const columns = [
-    { title: 'Product', dataIndex: 'name', key: 'name', render: (t) => <Text strong>{t}</Text> },
-    { title: 'Brand', dataIndex: 'brand', key: 'brand' },
-    { title: 'Category', dataIndex: 'category', key: 'category', render: (t) => <Tag>{t}</Tag> },
-    { title: 'Cost Price', dataIndex: 'costPrice', key: 'costPrice', render: (v) => `₹${v}` },
     {
-      title: 'Platforms',
-      key: 'platforms',
-      render: (_, record) => (
-        <Space>
-          {record.listings.map((l, i) => (
-            <Tag key={i} color={platformColor[l.platform]}>{l.platform}</Tag>
-          ))}
-        </Space>
-      )
+      title: 'Product', dataIndex: 'name', key: 'name', width: 200,
+      render: (t) => <Text strong>{t}</Text>,
     },
     {
-      title: 'Health Score',
-      dataIndex: 'healthScore',
-      key: 'healthScore',
+      title: 'Brand', dataIndex: 'brand', key: 'brand', width: 120,
+    },
+    {
+      title: 'Category', dataIndex: 'category', key: 'category', width: 150,
+      render: (t) => <Tag>{t}</Tag>,
+    },
+    {
+      title: 'Cost Price', dataIndex: 'costPrice', key: 'costPrice', width: 120,
+      render: (v) => <Text>₹{Number(v).toLocaleString('en-IN')}</Text>,
+    },
+    {
+      title: 'Platforms', key: 'platforms',
+      render: (_, record) => (
+        <Space wrap>
+          {record.listings.length > 0
+            ? record.listings.map((l, i) => (
+                <Tag key={i} color={platformColor[l.platform] || 'default'}>
+                  {l.platform}
+                </Tag>
+              ))
+            : <Text type="secondary" style={{ fontSize: 12 }}>No listings</Text>
+          }
+        </Space>
+      ),
+    },
+    {
+      title: 'Health Score', dataIndex: 'healthScore', key: 'healthScore', width: 120,
       sorter: (a, b) => a.healthScore - b.healthScore,
       render: (score) => (
         <Progress
-          type="circle"
-          percent={score}
-          size={45}
+          type="circle" percent={score} size={45}
           status={score < 40 ? 'exception' : score < 60 ? 'normal' : 'success'}
           format={(p) => p}
         />
-      )
+      ),
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: 'Actions', key: 'actions', width: 200,
       render: (_, record) => (
         <Space>
-          <Button icon={<EyeOutlined />} onClick={() => { setSelectedProduct(record); setDetailVisible(true); }}>
+          <Button
+            icon={<EyeOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedProduct(record);
+              setDetailVisible(true);
+            }}
+          >
             View
           </Button>
-          <Button type="primary" icon={<ThunderboltOutlined />} ghost>
-            Get AI Advice
+          <Button
+            type="primary" icon={<ThunderboltOutlined />} ghost
+            onClick={(e) => e.stopPropagation()}
+          >
+            AI Advice
           </Button>
         </Space>
-      )
+      ),
     },
   ];
 
   return (
     <div>
+      {/* Header */}
       <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
         <Title level={3} style={{ margin: 0 }}>Product Catalog</Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddVisible(true)}>
-          Add Product
-        </Button>
+        <Space>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => fetchProducts(search, marketplace)}
+            loading={loading}
+          >
+            Refresh
+          </Button>
+          <Button
+            icon={<UploadOutlined />}
+            onClick={() => setCsvVisible(true)}
+          >
+            Import CSV
+          </Button>
+          <Button
+            type="primary" icon={<PlusOutlined />}
+            onClick={() => setAddVisible(true)}
+          >
+            Add Product
+          </Button>
+        </Space>
       </Row>
 
-      <Card style={{ borderRadius: 12 }}>
-        <Table
-          dataSource={demoProducts}
-          columns={columns}
-          rowKey="id"
-          pagination={{ pageSize: 10 }}
-        />
+      {/* Search + Filter */}
+      <Card style={{ borderRadius: 12, marginBottom: 16 }}>
+        <Space wrap>
+          <Input.Search
+            placeholder="Search products..."
+            allowClear
+            prefix={<SearchOutlined />}
+            style={{ width: 260 }}
+            onSearch={(val) => setSearch(val)}
+            onChange={(e) => { if (e.target.value === '') setSearch(''); }}
+          />
+          <Select
+            placeholder="All marketplaces"
+            allowClear
+            style={{ width: 180 }}
+            onChange={(val) => setMarketplace(val ?? null)}
+          >
+            <Select.Option value="AMAZON">Amazon</Select.Option>
+            <Select.Option value="FLIPKART">Flipkart</Select.Option>
+            <Select.Option value="SHOPIFY">Shopify</Select.Option>
+            <Select.Option value="MEESHO">Meesho</Select.Option>
+            <Select.Option value="MYNTRA">Myntra</Select.Option>
+            <Select.Option value="WOOCOMMERCE">WooCommerce</Select.Option>
+          </Select>
+          {(search || marketplace) && (
+            <Button onClick={() => { setSearch(''); setMarketplace(null); }}>
+              Clear filters
+            </Button>
+          )}
+        </Space>
       </Card>
+
+      {/* Error */}
+      {error && (
+        <Alert
+          message={error} type="error" showIcon closable
+          style={{ marginBottom: 16, borderRadius: 8 }}
+          onClose={() => setError(null)}
+        />
+      )}
+
+      {/* Table */}
+      <Card style={{ borderRadius: 12 }}>
+        {loading
+          ? <Skeleton active paragraph={{ rows: 6 }} />
+          : (
+            <Table
+              dataSource={products}
+              columns={columns}
+              rowKey="id"
+              pagination={{ pageSize: 10, showTotal: (total) => `${total} products` }}
+              locale={{ emptyText: 'No products found' }}
+              onRow={(record) => ({
+                onClick: () => navigate(`/products/${record.id}`),
+                style: { cursor: 'pointer' },
+              })}
+            />
+          )
+        }
+      </Card>
+
+      {/* CSV Modal */}
+      <UploadCsvModal
+        visible={csvVisible}
+        onClose={() => setCsvVisible(false)}
+        onSuccess={() => fetchProducts(search, marketplace)}
+      />
 
       {/* Product Detail Modal */}
       <Modal
@@ -140,28 +326,53 @@ export default function Products() {
             <Descriptions bordered column={2} style={{ marginBottom: 16 }}>
               <Descriptions.Item label="Brand">{selectedProduct.brand}</Descriptions.Item>
               <Descriptions.Item label="Category">{selectedProduct.category}</Descriptions.Item>
-              <Descriptions.Item label="Cost Price">₹{selectedProduct.costPrice}</Descriptions.Item>
+              <Descriptions.Item label="Cost Price">
+                ₹{Number(selectedProduct.costPrice).toLocaleString('en-IN')}
+              </Descriptions.Item>
               <Descriptions.Item label="Health Score">
-                <Badge status={selectedProduct.healthScore < 40 ? 'error' : selectedProduct.healthScore < 60 ? 'warning' : 'success'} />
+                <Badge
+                  status={
+                    selectedProduct.healthScore < 40 ? 'error'
+                    : selectedProduct.healthScore < 60 ? 'warning'
+                    : 'success'
+                  }
+                />
                 {selectedProduct.healthScore}/100
               </Descriptions.Item>
             </Descriptions>
 
             <Title level={5}>Marketplace Listings</Title>
-            <Table
-              dataSource={selectedProduct.listings}
-              rowKey="platform"
-              pagination={false}
-              columns={[
-                { title: 'Platform', dataIndex: 'platform', render: (p) => <Tag color={platformColor[p]}>{p}</Tag> },
-                { title: 'Price', dataIndex: 'currentPrice', render: (v) => <Text strong>₹{v}</Text> },
-                { title: 'Stock', dataIndex: 'stockQuantity' },
-                { title: 'Views (7d)', dataIndex: 'viewsLast7Days' },
-                { title: 'Orders (7d)', dataIndex: 'ordersLast7Days',
-                  render: (v) => <Text type={v === 0 ? 'danger' : undefined}>{v}</Text> },
-                { title: 'Rating', dataIndex: 'rating', render: (v) => `⭐ ${v}` },
-              ]}
-            />
+            {selectedProduct.listings.length === 0
+              ? <Text type="secondary">No listings for this product</Text>
+              : (
+                <Table
+                  dataSource={selectedProduct.listings}
+                  rowKey="platform"
+                  pagination={false}
+                  size="small"
+                  columns={[
+                    {
+                      title: 'Platform', dataIndex: 'platform',
+                      render: (p) => <Tag color={platformColor[p] || 'default'}>{p}</Tag>,
+                    },
+                    {
+                      title: 'Price', dataIndex: 'currentPrice',
+                      render: (v) => <Text strong>₹{Number(v).toLocaleString('en-IN')}</Text>,
+                    },
+                    { title: 'Stock', dataIndex: 'stockQuantity' },
+                    { title: 'Views (7d)', dataIndex: 'viewsLast7Days' },
+                    {
+                      title: 'Orders (7d)', dataIndex: 'ordersLast7Days',
+                      render: (v) => <Text type={v === 0 ? 'danger' : undefined}>{v}</Text>,
+                    },
+                    {
+                      title: 'Rating', dataIndex: 'rating',
+                      render: (v) => v ? `⭐ ${v}` : '—',
+                    },
+                  ]}
+                />
+              )
+            }
           </div>
         )}
       </Modal>
@@ -170,11 +381,14 @@ export default function Products() {
       <Modal
         title="Add New Product"
         open={addVisible}
-        onCancel={() => setAddVisible(false)}
+        onCancel={() => { setAddVisible(false); form.resetFields(); }}
         footer={null}
       >
-        <Form layout="vertical">
-          <Form.Item label="Product Name" name="name" rules={[{ required: true }]}>
+        <Form form={form} layout="vertical" onFinish={handleAddProduct}>
+          <Form.Item
+            label="Product Name" name="name"
+            rules={[{ required: true, message: 'Please enter product name' }]}
+          >
             <Input placeholder="e.g., boAt Rockerz 255 Pro" />
           </Form.Item>
           <Row gutter={16}>
@@ -214,7 +428,9 @@ export default function Products() {
           <Form.Item label="Min Margin %" name="minimumMarginPercent">
             <InputNumber style={{ width: '100%' }} min={0} max={100} />
           </Form.Item>
-          <Button type="primary" block>Add Product</Button>
+          <Button type="primary" htmlType="submit" block loading={addLoading}>
+            Add Product
+          </Button>
         </Form>
       </Modal>
     </div>

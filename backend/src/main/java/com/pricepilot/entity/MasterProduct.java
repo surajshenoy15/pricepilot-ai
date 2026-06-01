@@ -1,5 +1,6 @@
 package com.pricepilot.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(exclude = {"tenant", "listings"})
 public class MasterProduct {
 
     @Id
@@ -20,6 +22,7 @@ public class MasterProduct {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnore
     private Tenant tenant;
 
     @Column(nullable = false)
@@ -49,14 +52,15 @@ public class MasterProduct {
     @Column(name = "minimum_margin_percent", precision = 5, scale = 2)
     private BigDecimal minimumMarginPercent;
 
-    @OneToMany(mappedBy = "masterProduct", cascade = CascadeType.ALL)
-    private List<MarketplaceProduct> listings;
-
     @Column(name = "health_score")
     private Integer healthScore;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "masterProduct", cascade = CascadeType.ALL)
+    // NO @JsonIgnore here — listings must be returned in API response
+    private List<MarketplaceProduct> listings;
 
     @PrePersist
     protected void onCreate() {
@@ -64,21 +68,23 @@ public class MasterProduct {
     }
 
     public BigDecimal getMinimumSafePrice() {
-        BigDecimal cost = costPrice != null ? costPrice : BigDecimal.ZERO;
+        BigDecimal cost       = costPrice             != null ? costPrice             : BigDecimal.ZERO;
         BigDecimal commission = marketplaceCommission != null ? marketplaceCommission : BigDecimal.ZERO;
-        BigDecimal shipping = shippingCost != null ? shippingCost : BigDecimal.ZERO;
-        BigDecimal packaging = packagingCost != null ? packagingCost : BigDecimal.ZERO;
+        BigDecimal shipping   = shippingCost          != null ? shippingCost          : BigDecimal.ZERO;
+        BigDecimal packaging  = packagingCost         != null ? packagingCost         : BigDecimal.ZERO;
 
         BigDecimal subtotal = cost.add(commission).add(shipping).add(packaging);
 
-        // Add tax
         if (taxPercent != null && taxPercent.compareTo(BigDecimal.ZERO) > 0) {
-            subtotal = subtotal.add(subtotal.multiply(taxPercent).divide(BigDecimal.valueOf(100)));
+            subtotal = subtotal.add(
+                subtotal.multiply(taxPercent).divide(BigDecimal.valueOf(100))
+            );
         }
 
-        // Add minimum margin
         if (minimumMarginPercent != null && minimumMarginPercent.compareTo(BigDecimal.ZERO) > 0) {
-            subtotal = subtotal.add(cost.multiply(minimumMarginPercent).divide(BigDecimal.valueOf(100)));
+            subtotal = subtotal.add(
+                cost.multiply(minimumMarginPercent).divide(BigDecimal.valueOf(100))
+            );
         }
 
         return subtotal;
