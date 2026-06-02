@@ -1,5 +1,6 @@
 package com.pricepilot.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(exclude = {"users"})
 public class Tenant {
 
     @Id
@@ -21,16 +23,17 @@ public class Tenant {
     private String name;
 
     @Column(nullable = false)
-    private String plan; // FREE, STARTER, GROWTH, ENTERPRISE
+    private String plan;
 
     @Column(nullable = false)
-    private String status; // ACTIVE, SUSPENDED
-
-    @OneToMany(mappedBy = "tenant", cascade = CascadeType.ALL)
-    private List<User> users;
+    private String status;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt;         // ← was missing, added here
+
+    @OneToMany(mappedBy = "tenant", cascade = CascadeType.ALL)
+    @JsonIgnore                              // ← fixes circular reference
+    private List<User> users;
 
     @PrePersist
     protected void onCreate() {

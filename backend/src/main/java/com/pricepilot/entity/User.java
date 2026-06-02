@@ -1,5 +1,6 @@
 package com.pricepilot.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(exclude = {"tenant"})
 public class User {
 
     @Id
@@ -18,6 +20,7 @@ public class User {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnore                              // ← fixes circular reference
     private Tenant tenant;
 
     @Column(nullable = false)
@@ -31,6 +34,7 @@ public class User {
     private Role role;
 
     @Column(name = "password_hash", nullable = false)
+    @JsonIgnore                              // ← never expose password in API response
     private String passwordHash;
 
     @Column(name = "created_at")
@@ -39,6 +43,10 @@ public class User {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+    }
+
+    public String getPassword() {
+        return passwordHash;
     }
 
     public enum Role {
