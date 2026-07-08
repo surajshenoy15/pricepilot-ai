@@ -2,6 +2,8 @@ package com.pricepilot.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -37,6 +39,7 @@ public class Recommendation {
 
     @Column(name = "recommendation_type", nullable = false)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private RecommendationType recommendationType;
 
     @Column(name = "current_price", precision = 10, scale = 2)
@@ -62,6 +65,7 @@ public class Recommendation {
 
     @Column(name = "risk_level")
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private RiskLevel riskLevel;
 
     @Column(name = "expected_impact")
@@ -72,6 +76,7 @@ public class Recommendation {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private Status status;
 
     @Column(name = "approved_by")
@@ -105,3 +110,4 @@ public class Recommendation {
         PENDING, APPROVED, REJECTED, APPLIED, EXPIRED
     }
 }
+

@@ -3,6 +3,8 @@ package com.pricepilot.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,6 +35,7 @@ public class MarketplaceProduct {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private Platform platform;
 
     @Column(name = "platform_sku")
@@ -88,3 +91,4 @@ public class MarketplaceProduct {
         AMAZON, FLIPKART, SHOPIFY, MEESHO, MYNTRA, WOOCOMMERCE, OTHER
     }
 }
+

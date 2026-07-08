@@ -2,6 +2,8 @@ package com.pricepilot.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.*;
 import java.time.LocalDateTime;
 
@@ -31,6 +33,7 @@ public class User {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private Role role;
 
     @Column(name = "password_hash", nullable = false)
@@ -53,3 +56,4 @@ public class User {
         SUPER_ADMIN, TENANT_ADMIN, PRICING_MANAGER, SELLER, ANALYST
     }
 }
+
