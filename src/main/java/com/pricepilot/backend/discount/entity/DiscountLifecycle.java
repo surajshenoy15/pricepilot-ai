@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "discount_lifecycle")
@@ -30,6 +32,7 @@ public class DiscountLifecycle {
     private LocalDateTime expiresAt;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private DiscountStatus status;
 
     private LocalDateTime createdAt;
