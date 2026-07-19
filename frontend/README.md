@@ -1,16 +1,59 @@
-# React + Vite
+# PricePilot AI Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern React + Vite frontend for PricePilot AI, an intelligent dynamic-pricing and sales-recovery platform for e-commerce teams.
 
-Currently, two official plugins are available:
+## UI highlights
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Responsive company-grade dashboard shell
+- Animated landing page with 3D product-intelligence preview
+- Modern sign-in and registration experience
+- Dark and light workspace themes
+- Responsive desktop sidebar and mobile navigation drawer
+- Command palette (`Ctrl/Cmd + K`)
+- Micro-interactions, route transitions, loading animations, and polished empty/loading states
+- Code-split business pages for faster initial loading
+- Vercel SPA routing configuration
 
-## React Compiler
+## Existing API integration
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+All existing frontend API paths and backend integrations are preserved. Configure only the backend base URL:
 
-## Expanding the ESLint configuration
+```bash
+cp .env.example .env
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```env
+VITE_API_BASE=http://localhost:9090/api
+```
+
+For Vercel, add `VITE_API_BASE` under **Project Settings → Environment Variables** using your deployed backend URL.
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+The Vite development server runs at `http://localhost:5173`.
+
+## Production build
+
+```bash
+npm run build
+npm run preview
+```
+
+## Vercel deployment
+
+1. Push this frontend folder to GitHub.
+2. Import the repository in Vercel.
+3. Use `npm run build` as the build command.
+4. Use `dist` as the output directory.
+5. Add the `VITE_API_BASE` environment variable.
+
+`vercel.json` is included so React Router URLs work after refresh.
+
+## Technology
+
+React 19, Vite, Tailwind CSS, Ant Design, Recharts, Axios, and React Router.

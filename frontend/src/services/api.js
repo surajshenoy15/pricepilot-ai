@@ -40,6 +40,7 @@ export const dashboardAPI = {
 };
 
 // Product APIs
+// Product APIs
 export const productAPI = {
   getAll: () => api.get('/products'),
   getById: (id) => api.get(`/products/${id}`),
