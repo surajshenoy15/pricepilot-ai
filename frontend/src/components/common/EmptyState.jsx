@@ -1,12 +1,20 @@
 import { Button } from 'antd';
+import {
+  InboxOutlined,
+  RobotOutlined,
+  SearchOutlined,
+  TeamOutlined,
+  BarChartOutlined,
+  FolderOpenOutlined,
+} from '@ant-design/icons';
 
 const ICONS = {
-  products:        { emoji: '📦', color: '#e6f4ff', border: '#91caff' },
-  recommendations: { emoji: '🤖', color: '#f9f0ff', border: '#d3adf7' },
-  search:          { emoji: '🔍', color: '#fff7e6', border: '#ffd591' },
-  users:           { emoji: '👥', color: '#f6ffed', border: '#b7eb8f' },
-  reports:         { emoji: '📊', color: '#fff0f6', border: '#ffadd2' },
-  default:         { emoji: '🗂️', color: '#fafafa', border: '#d9d9d9' },
+  products:        { Icon: InboxOutlined,      color: '#e6f4ff', border: '#91caff', iconColor: '#1677ff' },
+  recommendations: { Icon: RobotOutlined,      color: '#f9f0ff', border: '#d3adf7', iconColor: '#9254de' },
+  search:          { Icon: SearchOutlined,     color: '#fff7e6', border: '#ffd591', iconColor: '#fa8c16' },
+  users:           { Icon: TeamOutlined,       color: '#f6ffed', border: '#b7eb8f', iconColor: '#52c41a' },
+  reports:         { Icon: BarChartOutlined,   color: '#fff0f6', border: '#ffadd2', iconColor: '#eb2f96' },
+  default:         { Icon: FolderOpenOutlined, color: '#fafafa', border: '#d9d9d9', iconColor: '#8c8c8c' },
 };
 
 export default function EmptyState({
@@ -17,6 +25,7 @@ export default function EmptyState({
   onAction,
 }) {
   const cfg = ICONS[type] || ICONS.default;
+  const Icon = cfg.Icon;
 
   const defaultTitles = {
     products:        'No products yet',
@@ -46,14 +55,14 @@ export default function EmptyState({
         width: 80, height: 80, borderRadius: 20,
         background: cfg.color, border: `2px solid ${cfg.border}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 36, marginBottom: 20,
+        marginBottom: 20,
       }}>
-        {cfg.emoji}
+        <Icon style={{ fontSize: 36, color: cfg.iconColor }} />
       </div>
-      <div style={{ fontSize: 17, fontWeight: 600, color: '#1a1a1a', marginBottom: 8 }}>
+      <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--ant-color-text)', marginBottom: 8 }}>
         {title || defaultTitles[type]}
       </div>
-      <div style={{ fontSize: 14, color: '#888', maxWidth: 320, lineHeight: 1.6, marginBottom: 24 }}>
+      <div style={{ fontSize: 14, color: 'var(--ant-color-text-secondary)', maxWidth: 320, lineHeight: 1.6, marginBottom: 24 }}>
         {description || defaultDescs[type]}
       </div>
       {actionLabel && onAction && (

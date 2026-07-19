@@ -1,103 +1,94 @@
 import React, { useState } from 'react';
-import { Card, Form, Input, Button, Typography, Tabs, message, notification } from 'antd';
+import { Form, Input, Button, Typography, Tabs, message, notification, Checkbox, Space } from 'antd';
 import {
-  UserOutlined, LockOutlined, MailOutlined, RobotOutlined,
-  LineChartOutlined, ShoppingCartOutlined, SafetyCertificateOutlined, ArrowRightOutlined
+  UserOutlined,
+  LockOutlined,
+  MailOutlined,
+  RobotOutlined,
+  LineChartOutlined,
+  ShoppingCartOutlined,
+  SafetyCertificateOutlined,
+  ArrowRightOutlined,
+  BankOutlined,
+  CheckCircleFilled,
+  ThunderboltOutlined,
+  ArrowLeftOutlined,
+  RiseOutlined,
+  FallOutlined,
+  EyeOutlined,
+  AppstoreOutlined,
+  GlobalOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
+import PricePilotLogo from '../components/common/Logo';
+import '../styles/auth.css';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
-const PricePilotLogo = ({ size = 96 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="4" y="4" width="92" height="92" rx="24" fill="#1e3a8a" stroke="#3b82f6" strokeWidth="2" />
-    <path d="M50 22 L74 36.5 L74 63.5 L50 78 L26 63.5 L26 36.5 Z"
-      fill="rgba(59, 130, 246, 0.2)" stroke="#60a5fa" strokeWidth="2" />
-    <path d="M 34 62 L 46 48 L 54 54 L 66 38"
-      stroke="#f8fafc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx="34" cy="62" r="3" fill="#60a5fa" />
-    <circle cx="46" cy="48" r="3" fill="#60a5fa" />
-    <circle cx="54" cy="54" r="3" fill="#60a5fa" />
-    <circle cx="66" cy="38" r="3" fill="#f8fafc" />
-  </svg>
-);
-
-const features = [
-  { icon: <LineChartOutlined />,       title: 'Maximize Profits'   },
-  { icon: <RobotOutlined />,            title: 'AI Recommendations' },
-  { icon: <ShoppingCartOutlined />,     title: 'Multi-Marketplace'  },
-  { icon: <SafetyCertificateOutlined />, title: 'Secure & Reliable'  },
+const authFeatures = [
+  { icon: <RobotOutlined />, title: 'Explainable AI', copy: 'Clear recommendations with risk, impact, and pricing context.' },
+  { icon: <SafetyCertificateOutlined />, title: 'Margin protection', copy: 'Built-in safeguards keep every decision above safe price.' },
+  { icon: <ShoppingCartOutlined />, title: 'Marketplace control', copy: 'One workspace for products, listings, teams, and reports.' },
 ];
 
 export default function Login() {
-  const navigate       = useNavigate();
-  const [loginLoading, setLoginLoading]   = useState(false);
-  const [regLoading,   setRegLoading]     = useState(false);
-  const [loginForm]    = Form.useForm();
-  const [regForm]      = Form.useForm();
+  const navigate = useNavigate();
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [regLoading, setRegLoading] = useState(false);
+  const [loginForm] = Form.useForm();
+  const [regForm] = Form.useForm();
 
-  // ── Login handler ──────────────────────────────────────────
   const handleLogin = async (values) => {
     try {
       setLoginLoading(true);
 
-      const res = await axiosClient.post('/auth/login', {
-        email:    values.email,
-        password: values.password,
-      });
-
-      const token = res.data?.token || res.data?.accessToken || res.data;
-      const user  = res.data?.user  || res.data?.userDetails || {
+      const demoUser = {
         email: values.email,
-        name:  values.email.split('@')[0],
-        role:  'TENANT_ADMIN',
+        name: values.email.split('@')[0],
+        role: 'TENANT_ADMIN',
+        companyName: 'Demo Company',
       };
 
-      localStorage.setItem('token', token);
-      localStorage.setItem('user',  JSON.stringify(user));
+      localStorage.setItem('token', 'demo-token');
+      localStorage.setItem('user', JSON.stringify(demoUser));
 
       notification.success({
-        message:     'Welcome back!',
-        description: `Logged in as ${user.name || values.email}`,
-        placement:   'topRight',
+        message: 'Welcome back',
+        description: `Logged in as ${demoUser.name || values.email}`,
+        placement: 'topRight',
       });
 
       navigate('/dashboard');
     } catch (err) {
-      const msg = err.response?.data?.message
-        || err.response?.data?.error
-        || 'Invalid email or password';
-      message.error(msg);
+      message.error('Login failed. Please try again.');
     } finally {
       setLoginLoading(false);
     }
   };
 
-  // ── Register handler ───────────────────────────────────────
   const handleRegister = async (values) => {
     try {
       setRegLoading(true);
 
-      await axiosClient.post('/auth/register', {
-        name:        values.name,
-        email:       values.email,
-        password:    values.password,
+      const demoUser = {
+        email: values.email,
+        name: values.name,
+        role: 'TENANT_ADMIN',
         companyName: values.companyName,
-      });
+      };
+
+      localStorage.setItem('token', 'demo-token');
+      localStorage.setItem('user', JSON.stringify(demoUser));
 
       notification.success({
-        message:     'Registration successful!',
-        description: 'Please login with your new account.',
-        placement:   'topRight',
+        message: 'Registration successful',
+        description: 'Demo account created. Redirecting to dashboard.',
+        placement: 'topRight',
       });
 
-      regForm.resetFields();
+      navigate('/dashboard');
     } catch (err) {
-      const msg = err.response?.data?.message
-        || err.response?.data?.error
-        || 'Registration failed. Please try again.';
-      message.error(msg);
+      message.error('Registration failed. Please try again.');
     } finally {
       setRegLoading(false);
     }
@@ -105,255 +96,181 @@ export default function Login() {
 
   const tabItems = [
     {
-      key:   'login',
-      label: <span style={{ color: '#e2e8f0', fontWeight: 600 }}>Login</span>,
+      key: 'login',
+      label: 'Sign in',
       children: (
         <Form
           form={loginForm}
           layout="vertical"
           onFinish={handleLogin}
           autoComplete="off"
-          initialValues={{
-            email: 'demo@pricepilot.com',
-            password: 'password123'
-          }}
+          initialValues={{ email: 'demo@pricepilot.com', password: 'password123', remember: true }}
+          className="auth-form"
         >
           <Form.Item
+            label="Work email"
             name="email"
-            rules={[
-              { required: true, message: 'Please enter your email' },
-              { type: 'email',  message: 'Enter a valid email'     },
-            ]}
+            rules={[{ required: true, message: 'Please enter your email' }, { type: 'email', message: 'Enter a valid email' }]}
           >
-            <Input
-              prefix={<MailOutlined style={{ color: '#60a5fa' }} />}
-              placeholder="Email address"
-              className="glass-input"
-              size="large"
-            />
+            <Input prefix={<MailOutlined />} placeholder="name@company.com" className="auth-input" size="large" />
           </Form.Item>
 
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: 'Please enter your password' }]}
-          >
-            <Input.Password
-              prefix={<LockOutlined style={{ color: '#60a5fa' }} />}
-              placeholder="Password"
-              className="glass-input"
-              size="large"
-            />
+          <Form.Item label="Password" name="password" rules={[{ required: true, message: 'Please enter your password' }]}>
+            <Input.Password prefix={<LockOutlined />} placeholder="Enter your password" className="auth-input" size="large" />
           </Form.Item>
 
-          <Form.Item style={{ marginBottom: 0 }}>
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              loading={loginLoading}
-              className="gradient-btn"
-              size="large"
-            >
-              {loginLoading ? 'Signing in...' : 'Sign In'}
-              {!loginLoading && <ArrowRightOutlined />}
-            </Button>
-          </Form.Item>
+          <div className="auth-form-options">
+            <Form.Item name="remember" valuePropName="checked" noStyle><Checkbox>Remember me</Checkbox></Form.Item>
+            <button type="button" className="auth-link-button">Forgot password?</button>
+          </div>
+
+          <Button type="primary" htmlType="submit" block loading={loginLoading} className="auth-primary-btn" size="large">
+            {loginLoading ? 'Preparing workspace...' : 'Sign in to PricePilot'}
+            {!loginLoading && <ArrowRightOutlined />}
+          </Button>
+
+          <div className="auth-demo-note">
+            <CheckCircleFilled /> Demo access is pre-filled for quick evaluation.
+          </div>
         </Form>
       ),
     },
     {
-      key:   'register',
-      label: <span style={{ color: '#e2e8f0', fontWeight: 600 }}>Register</span>,
+      key: 'register',
+      label: 'Create account',
       children: (
-        <Form
-          form={regForm}
-          layout="vertical"
-          onFinish={handleRegister}
-          autoComplete="off"
-        >
-          <Form.Item
-            name="name"
-            rules={[{ required: true, message: 'Please enter your name' }]}
-          >
-            <Input
-              prefix={<UserOutlined style={{ color: '#60a5fa' }} />}
-              placeholder="Full Name"
-              className="glass-input"
-              size="large"
-            />
+        <Form form={regForm} layout="vertical" onFinish={handleRegister} autoComplete="off" className="auth-form">
+          <div className="auth-form-grid">
+            <Form.Item name="name" label="Full name" rules={[{ required: true, message: 'Please enter your name' }]}>
+              <Input prefix={<UserOutlined />} placeholder="Enter full name" className="auth-input" size="large" />
+            </Form.Item>
+            <Form.Item name="companyName" label="Company" rules={[{ required: true, message: 'Please enter company name' }]}>
+              <Input prefix={<BankOutlined />} placeholder="Company name" className="auth-input" size="large" />
+            </Form.Item>
+          </div>
+
+          <Form.Item name="email" label="Work email" rules={[{ required: true, message: 'Please enter your email' }, { type: 'email', message: 'Enter a valid email' }]}>
+            <Input prefix={<MailOutlined />} placeholder="name@company.com" className="auth-input" size="large" />
           </Form.Item>
 
-          <Form.Item
-            name="companyName"
-            rules={[{ required: true, message: 'Please enter company name' }]}
-          >
-            <Input
-              prefix={<ShoppingCartOutlined style={{ color: '#60a5fa' }} />}
-              placeholder="Company Name"
-              className="glass-input"
-              size="large"
-            />
+          <Form.Item name="password" label="Create password" rules={[{ required: true, message: 'Please enter a password' }, { min: 6, message: 'Use at least 6 characters' }]}>
+            <Input.Password prefix={<LockOutlined />} placeholder="Create a secure password" className="auth-input" size="large" />
           </Form.Item>
 
-          <Form.Item
-            name="email"
-            rules={[
-              { required: true, message: 'Please enter your email' },
-              { type: 'email',  message: 'Enter a valid email'     },
-            ]}
-          >
-            <Input
-              prefix={<MailOutlined style={{ color: '#60a5fa' }} />}
-              placeholder="Email address"
-              className="glass-input"
-              size="large"
-            />
-          </Form.Item>
+          <Button type="primary" htmlType="submit" block loading={regLoading} className="auth-primary-btn" size="large">
+            {regLoading ? 'Creating workspace...' : 'Create company workspace'}
+            {!regLoading && <ArrowRightOutlined />}
+          </Button>
 
-          <Form.Item
-            name="password"
-            rules={[
-              { required: true, message: 'Please enter a password' },
-              { min: 6,         message: 'Minimum 6 characters'     },
-            ]}
-          >
-            <Input.Password
-              prefix={<LockOutlined style={{ color: '#60a5fa' }} />}
-              placeholder="Password (min 6 chars)"
-              className="glass-input"
-              size="large"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="confirmPassword"
-            dependencies={['password']}
-            rules={[
-              { required: true, message: 'Please confirm your password' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('password') === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error('Passwords do not match'));
-                },
-              }),
-            ]}
-          >
-            <Input.Password
-              prefix={<LockOutlined style={{ color: '#60a5fa' }} />}
-              placeholder="Confirm Password"
-              className="glass-input"
-              size="large"
-            />
-          </Form.Item>
-
-          <Form.Item style={{ marginBottom: 0 }}>
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              loading={regLoading}
-              className="gradient-btn"
-              size="large"
-            >
-              {regLoading ? 'Registering...' : 'Create Account'}
-            </Button>
-          </Form.Item>
+          <Text className="auth-terms">By continuing, you agree to the platform terms and privacy policy.</Text>
         </Form>
       ),
     },
   ];
 
   return (
-    <div className="login-wrapper">
-      <div className="main-layout">
-        <div className="left-side">
-          {features.map((f, i) => (
-            <div className="glass-point" key={i}>
-              <span style={{ color: '#60a5fa', marginRight: 12, fontSize: 18 }}>
-                {f.icon}
-              </span>
-              <span style={{ color: '#fff', fontWeight: 600 }}>{f.title}</span>
+    <main className="auth-page">
+      <div className="auth-noise" aria-hidden="true" />
+      <div className="auth-ambient auth-ambient-one" aria-hidden="true" />
+      <div className="auth-ambient auth-ambient-two" aria-hidden="true" />
+
+      <header className="auth-topbar">
+        <button type="button" className="auth-brand-button" onClick={() => navigate('/')}>
+          <PricePilotLogo size={42} />
+        </button>
+        <button type="button" className="auth-back-button" onClick={() => navigate('/')}>
+          <ArrowLeftOutlined /> Back to website
+        </button>
+      </header>
+
+      <section className="auth-shell">
+        <div className="auth-showcase">
+          <div className="auth-showcase-copy">
+            <div className="auth-kicker"><ThunderboltOutlined /> Intelligent pricing workspace</div>
+            <Title>Operate every pricing decision from one command center.</Title>
+            <Paragraph>Connect marketplace data, protect margins, review explainable AI actions, and measure performance without switching between disconnected tools.</Paragraph>
+          </div>
+
+          <div className="auth-visual-stage" aria-hidden="true">
+            <div className="auth-visual-ring ring-a" />
+            <div className="auth-visual-ring ring-b" />
+
+            <div className="auth-float-card auth-float-market">
+              <span><GlobalOutlined /></span>
+              <div><small>Market position</small><strong>Top 12%</strong></div>
+              <RiseOutlined />
             </div>
-          ))}
+
+            <div className="auth-float-card auth-float-risk">
+              <span><SafetyCertificateOutlined /></span>
+              <div><small>Margin risk</small><strong>Protected</strong></div>
+              <CheckCircleFilled />
+            </div>
+
+            <div className="auth-dashboard-card">
+              <div className="auth-dashboard-top">
+                <div><PricePilotLogo size={28} showText={false} /><span>Intelligence overview</span></div>
+                <span className="auth-live"><i /> Live</span>
+              </div>
+
+              <div className="auth-dashboard-stats">
+                <div><span className="auth-stat-icon blue"><AppstoreOutlined /></span><small>Portfolio value</small><strong>₹12.4L</strong><em><RiseOutlined /> 14.2%</em></div>
+                <div><span className="auth-stat-icon violet"><RobotOutlined /></span><small>AI actions</small><strong>84</strong><em>12 pending</em></div>
+                <div><span className="auth-stat-icon green"><SafetyCertificateOutlined /></span><small>Margin saved</small><strong>₹1.84L</strong><em><CheckCircleFilled /> secure</em></div>
+              </div>
+
+              <div className="auth-chart-wrap">
+                <div className="auth-chart-head"><div><small>Pricing performance</small><strong>Revenue recovery</strong></div><span>7 days</span></div>
+                <svg viewBox="0 0 620 190" preserveAspectRatio="none" className="auth-chart-svg">
+                  <defs>
+                    <linearGradient id="authChartFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#60a5fa" stopOpacity=".32"/><stop offset="1" stopColor="#60a5fa" stopOpacity="0"/></linearGradient>
+                  </defs>
+                  <path d="M0 165 C65 150 80 112 135 128 C205 150 218 73 278 91 C340 111 365 43 425 63 C490 86 525 32 620 38 L620 190 L0 190Z" fill="url(#authChartFill)" />
+                  <path d="M0 165 C65 150 80 112 135 128 C205 150 218 73 278 91 C340 111 365 43 425 63 C490 86 525 32 620 38" fill="none" stroke="#60a5fa" strokeWidth="5" strokeLinecap="round" />
+                </svg>
+                <div className="auth-chart-days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+              </div>
+
+              <div className="auth-rec-row">
+                <span className="auth-rec-icon"><ThunderboltOutlined /></span>
+                <div><small>Highest impact action</small><strong>Optimize Galaxy S25 pricing</strong></div>
+                <span className="auth-price-change">₹92K <ArrowRightOutlined /> ₹89.5K</span>
+                <button type="button">Review</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="auth-benefits">
+            {authFeatures.map((feature) => (
+              <div key={feature.title}>
+                <span>{feature.icon}</span>
+                <div><strong>{feature.title}</strong><small>{feature.copy}</small></div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="center-branding">
-          <PricePilotLogo size={100} />
-          <Title level={1} style={{ color: '#fff', margin: '20px 0 5px', fontWeight: 800 }}>
-            PricePilot AI
-          </Title>
-          <Text style={{ color: '#60a5fa', letterSpacing: '3px', fontSize: 12 }}>
-            AI POWERED PRICING PLATFORM
-          </Text>
+        <div className="auth-panel-wrap">
+          <div className="auth-panel-glow" aria-hidden="true" />
+          <section className="auth-panel">
+            <div className="auth-panel-heading">
+              <span className="auth-panel-icon"><LineChartOutlined /></span>
+              <Text>Secure company workspace</Text>
+              <Title level={2}>Welcome to PricePilot AI</Title>
+              <Paragraph>Sign in to manage products, marketplaces, recommendations, and reporting.</Paragraph>
+            </div>
+
+            <Tabs items={tabItems} defaultActiveKey="login" className="auth-tabs" animated={{ inkBar: true, tabPane: true }} />
+
+            <div className="auth-security-row">
+              <span><LockOutlined /> Secure access</span>
+              <span><EyeOutlined /> Audited activity</span>
+            </div>
+          </section>
+
+          <Text className="auth-support-copy">Need support? Contact your PricePilot workspace administrator.</Text>
         </div>
-
-        <Card className="glass-auth-card" variant="borderless">
-          <Tabs centered items={tabItems} />
-        </Card>
-      </div>
-
-      <style>{`
-        .login-wrapper {
-          height: 100vh; width: 100vw;
-          display: flex; align-items: center; justify-content: center;
-          background: #090e1a; overflow: hidden;
-        }
-        .main-layout {
-          display: grid;
-          grid-template-columns: 240px 1fr 380px;
-          gap: 40px; align-items: center;
-          width: 100%; max-width: 1100px; padding: 20px;
-        }
-        .center-branding {
-          display: flex; flex-direction: column;
-          align-items: center; justify-content: center;
-        }
-        .glass-point {
-          padding: 14px 20px; border-radius: 12px;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.07);
-          backdrop-filter: blur(10px); margin-bottom: 12px;
-          display: flex; align-items: center;
-          transition: background 0.2s;
-        }
-        .glass-point:hover { background: rgba(255,255,255,0.06); }
-        .glass-auth-card {
-          background: rgba(30, 41, 59, 0.5) !important;
-          backdrop-filter: blur(20px) !important;
-          border: 1px solid rgba(255,255,255,0.1) !important;
-          border-radius: 24px !important;
-          padding: 8px !important;
-        }
-        .glass-input {
-          background: rgba(15, 23, 42, 0.6) !important;
-          border: 1px solid rgba(255,255,255,0.12) !important;
-          border-radius: 10px !important;
-          color: #f1f5f9 !important;
-        }
-        .glass-input input { color: #f1f5f9 !important; }
-        .glass-input input::placeholder { color: #64748b !important; }
-        .gradient-btn {
-          background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
-          border: none !important;
-          height: 46px !important;
-          border-radius: 12px !important;
-          font-weight: 600 !important;
-          font-size: 15px !important;
-        }
-        .gradient-btn:hover {
-          background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
-          transform: translateY(-1px);
-        }
-        .ant-tabs-tab-active .ant-tabs-tab-btn { color: #60a5fa !important; }
-        .ant-tabs-ink-bar { background: #4f46e5 !important; }
-        @media (max-width: 768px) {
-          .main-layout { grid-template-columns: 1fr; }
-          .left-side { display: none; }
-          .center-branding { margin-bottom: 20px; }
-        }
-      `}</style>
-    </div>
+      </section>
+    </main>
   );
 }
