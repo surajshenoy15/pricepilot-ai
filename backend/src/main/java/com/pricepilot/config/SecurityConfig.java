@@ -53,13 +53,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:3000",
-    "https://pricepilot-ai.vercel.app",
-    "https://pricepilot-ai-sable.vercel.app"
-));
+        config.setAllowedOriginPatterns(List.of(
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:3000",
+            "https://pricepilot-ai.vercel.app",
+            "https://pricepilot-ai-sable.vercel.app",
+            "https://pricepilot-*.vercel.app"
+        ));
         config.setAllowedMethods(List.of(
             "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ));
