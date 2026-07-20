@@ -666,7 +666,7 @@ export default function Recommendations() {
 
       const tenantId = getTenantId();
 
-      await axiosClient.post('/recommendations/actions/generate-all', null, {
+      await axiosClient.post('/recommendations/generate-all', null, {
         params: { tenantId },
       });
 
