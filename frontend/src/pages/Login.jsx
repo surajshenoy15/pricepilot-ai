@@ -22,6 +22,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import PricePilotLogo from '../components/common/Logo';
 import '../styles/auth.css';
+import { authAPI } from '../services/api';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -42,25 +43,47 @@ export default function Login() {
     try {
       setLoginLoading(true);
 
-      const demoUser = {
+      const response = await authAPI.login({
         email: values.email,
-        name: values.email.split('@')[0],
-        role: 'TENANT_ADMIN',
-        companyName: 'Demo Company',
+        password: values.password,
+      });
+
+      const data = response.data;
+
+      if (!data.token || data.token.split('.').length !== 3) {
+        throw new Error('Backend did not return a valid JWT');
+      }
+
+      const user = {
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        tenantId: data.tenantId,
+        tenantName: data.tenantName,
+        companyName: data.tenantName,
       };
 
-      localStorage.setItem('token', 'demo-token');
-      localStorage.setItem('user', JSON.stringify(demoUser));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('tenantId', String(data.tenantId));
 
       notification.success({
         message: 'Welcome back',
-        description: `Logged in as ${demoUser.name || values.email}`,
+        description: `Logged in as ${user.name || user.email}`,
         placement: 'topRight',
       });
 
       navigate('/dashboard');
     } catch (err) {
-      message.error('Login failed. Please try again.');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('tenantId');
+
+      message.error(
+        err.response?.data?.message ||
+        err.message ||
+        'Login failed. Please check your credentials.'
+      );
     } finally {
       setLoginLoading(false);
     }
@@ -70,29 +93,54 @@ export default function Login() {
     try {
       setRegLoading(true);
 
-      const demoUser = {
-        email: values.email,
+      const response = await authAPI.register({
         name: values.name,
-        role: 'TENANT_ADMIN',
         companyName: values.companyName,
+        email: values.email,
+        password: values.password,
+      });
+
+      const data = response.data;
+
+      if (!data.token || data.token.split('.').length !== 3) {
+        throw new Error('Backend did not return a valid JWT');
+      }
+
+      const user = {
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        tenantId: data.tenantId,
+        tenantName: data.tenantName,
+        companyName: data.tenantName,
       };
 
-      localStorage.setItem('token', 'demo-token');
-      localStorage.setItem('user', JSON.stringify(demoUser));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('tenantId', String(data.tenantId));
 
       notification.success({
         message: 'Registration successful',
-        description: 'Demo account created. Redirecting to dashboard.',
+        description: 'Workspace created. Redirecting to dashboard.',
         placement: 'topRight',
       });
 
       navigate('/dashboard');
     } catch (err) {
-      message.error('Registration failed. Please try again.');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('tenantId');
+
+      message.error(
+        err.response?.data?.message ||
+        err.message ||
+        'Registration failed. Please try again.'
+      );
     } finally {
       setRegLoading(false);
     }
   };
+
 
   const tabItems = [
     {
